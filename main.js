@@ -37,7 +37,7 @@
         var New_button = document.querySelector("#mobile_header_container > div > div:nth-child(5)");
         New_button.addEventListener("click", function () {
             LoginRequst();
-            SiteRequst();
+
         });
 
     };
@@ -50,17 +50,12 @@
             data: 'typeName=XXX&content=XXX&options=XXX',
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             onload: function (r) {
+                SiteRequst();
             }
         });
     };
 
-    function parseToDOM(str) {
-        var div = document.createElement("div");
-        if (typeof str == "string")
-            div.innerHTML = str;
-        return div.childNodes;
-    }
-
+    //创建一个div来显示成绩信息
     function CopyOneDiv() {
         var element = document.querySelector("#page-content > div > ul:nth-child(3) > li:nth-child(1)")
         var copy = element.cloneNode(true);
@@ -79,60 +74,71 @@
                 CopyOneDiv();
                 document.querySelector("#swiper_db_content > div > div").innerHTML = '<div id = "999888"></div>';
 
-                //document.querySelector("#page-content > div > ul:nth-child(3) > li:nth-child(1) > div > compress:html > div").innerHTML = '<div id = "999888"></div>';
-                //$("#page-content > div > ul:nth-child(3)").append('<li></li>');
-                //$("#page-content > div > ul:nth-child(3) > li:nth-child(1) > div > compress:html > div").append(r.responseText);
-                //$("#page-content > div > ul:nth-child(3) > li:nth-child(1)").append(r.responseText);
-                $("#999888").html('');
                 $("#999888").append(r.responseText);
 
-                document.querySelector("#\\39 99888").parentElement.parentElement.parentElement.parentElement.parentElement.previousElementSibling.children[0].textContent = "我的成绩";
+                var TobeDel = [20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 9, 8, 6, 3];
 
-                document.querySelector("#\\39 99888 > div:nth-child(17) > div > div.Nsb_top_logo").remove
-                document.querySelector("#Top1_divLoginName").remove
-                document.querySelector("#\\39 99888 > div:nth-child(17) > div > div.Nsb_top_menu > ul > li:nth-child(1)").remove
-                document.querySelector("#divFirstMenuClass > ul").remove
-                document.querySelector("#\\39 99888 > div:nth-child(19) > div").remove
-                document.querySelector("#btn_back").remove
-                document.querySelector("#\\39 99888 > div:nth-child(19) > br:nth-child(4)").remove
-                //GetInfo(res);
-                //var temp = r.responseText;
-                //var res = parseToDOM(r);
-                // $(res).ready(function () {
-                //     alert("我的第一个jQuery代码!");
-                // });
-                //console.log(r);
-                //$(res);
-                //var a1 = $(res)("#dataList > tbody > tr:nth-child(3) > td:nth-child(4)").textContent;
-                //alert(`${a1}`);
+                var x;
+                for (x of TobeDel) {
+                    DeleteUselessElement(x);
+                }
+                ShitMountain();
             }
         });
     };
 
+    //移除无用的元素
+    function DeleteUselessElement(m) {
+        var t = document.querySelector(`#dataList > tbody > tr:nth-child(1) > th:nth-child(${m})`);
+        t.parentNode.removeChild(t);
+        for (var i = 2; ; i++) {
+            t = document.querySelector(`#dataList > tbody > tr:nth-child(${i}) > td:nth-child(${m})`)
+            if (t == null) {
+                break;
+            }
+            else {
+                t.parentNode.removeChild(t);
+            }
+        }
+    }
+
+    //删除不必要元素的屎山代码
+    function ShitMountain() {
+        document.querySelector("#Footer1_divCopyright > div").remove();
+        document.querySelector("#\\39 99888").parentElement.parentElement.parentElement.parentElement.parentElement.previousElementSibling.children[0].textContent = "我的成绩";
+        document.querySelector("#\\39 99888 > div:nth-child(17) > div > div.Nsb_top_logo").remove()
+        document.querySelector("#Top1_divLoginName").remove()
+        document.querySelector("#\\39 99888 > div:nth-child(17) > div > div.Nsb_top_menu > ul > li:nth-child(1)").remove()
+        document.querySelector("#divFirstMenuClass > ul").remove()
+        document.querySelector("#\\39 99888 > div:nth-child(19) > div").remove()
+        document.querySelector("#btn_back").remove()
+        document.querySelector("#\\39 99888 > div.Nsb_menu_pw").remove()
+        document.querySelector("#\\39 99888 > div:nth-child(17)").remove()
+        document.querySelector("#\\39 99888 > div:nth-child(17) > br:nth-child(3)").remove()
+        document.querySelector("#\\39 99888 > div:nth-child(17) > br:nth-child(2)").remove()
+        document.querySelector("#\\39 99888 > div:nth-child(17) > br:nth-child(1)").remove()
+    }
+
     //成绩单内容读入，提取关键信息并生成一个html文件
-    function GetInfo(res) {
+    function GetInfo() {
         var t = [];
         for (var i = 2; ; i++) {
-            t[i - 2] = res.querySelector(`#dataList > tbody > tr:nth-child(${i}) > td:nth-child(4)`);
+            t[i - 2] = $(`#dataList > tbody > tr:nth-child(${i}) > td:nth-child(4)`);
             if (t == null) {
                 break;
             }
             else {
                 console.log(t);
             }
-
         }
     };
 
 
-
-
-
+    //页面加载完成后执行此代码
     $(document).ready(function () {
 
         AddMenuButton();
 
     });
-
 
 })();
