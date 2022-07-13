@@ -7,7 +7,7 @@
 // @description 一键查询成绩、一键查看未修学分、解决非兼容模式下无法查看平时分的问题
 
 // @author      bz2021
-// @version     1.0
+// @version     1.1
 
 // @match       https://service.sdu.edu.cn/*
 // @grant       GM_xmlhttpRequest
