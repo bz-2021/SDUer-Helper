@@ -1,20 +1,48 @@
 // ==UserScript==
-// @name        SDUer Helper
-// @name:zh     山东大学信息化公共服务平台助手
+// @name        SDUer Helper 兼容Chrome自动评教、成绩助手
+// @name:zh     SDUer Helper 兼容Chrome自动评教、成绩助手
 
 // @namespace   https://service.sdu.edu.cn/
 
-// @description 一键查询成绩、一键查看未修学分、解决非兼容模式下无法查看平时分的问题
+// @description 一键查询成绩、兼容Chrome、一键评教、解决非兼容模式下无法查看平时分的问题
 
 // @author      bz2021
-// @version     1.1
+// @version     3.0
+// @license MIT
 
+// @match       *jwxt.wh.sdu.edu.cn/*
 // @match       https://service.sdu.edu.cn/*
+// @exclude		*xsxk*
 // @grant       GM_xmlhttpRequest
 // @connect     *
 // ==/UserScript==
 
 (function () {
+
+    var JsMod = (htmlurl,tmpWidth,tmpHeight) => {
+        htmlurl=getRandomUrl(htmlurl);
+        var newwin = window.open("http://jwxt.wh.sdu.edu.cn" + htmlurl,window,"dialogWidth:"+tmpWidth+"px;status:no;dialogHeight:"+tmpHeight+"px");
+
+        if(newwin == "refresh" || newwin == "ok"){
+            if(getOs() == "chrome"){
+                window.location.reload();// 谷歌浏览器要用此方法刷新
+            }else{
+                window.location.href = window.location.href;
+            }
+        }
+    }
+
+    var getRandomUrl = (htmlurl) => {
+        var count =htmlurl.indexOf("?");
+        var  date=new Date();
+        var t=Date.parse(date);    
+        if(count<0){
+            htmlurl=htmlurl+"?tktime="+t;
+        }else{
+            htmlurl=htmlurl+"&tktime="+t;
+        }
+        return htmlurl;
+    }
 
     //在主菜单添加一个名为“我的成绩”的按钮
     function AddMenuButton() {
@@ -76,12 +104,19 @@
 
                 $("#999888").append(r.responseText);
 
-                var TobeDel = [20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 9, 8, 6, 3];
+                document.querySelector(`#dataList > tbody > tr:nth-child(1) > th:nth-child(${10})`).style.width = "200px";
+                document.querySelector(`#dataList > tbody > tr:nth-child(1) > th:nth-child(${2})`).style.width = "100px";
+
+                Judge();
+
+                var TobeDel = [20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 9, 8, 6];
 
                 var x;
                 for (x of TobeDel) {
                     DeleteUselessElement(x);
                 }
+                unsafeWindow.JsMod = JsMod;
+                unsafeWindow.getRandomUrl = getRandomUrl;
                 ShitMountain();
             }
         });
@@ -90,7 +125,7 @@
     //移除无用的元素
     function DeleteUselessElement(m) {
         var t = document.querySelector(`#dataList > tbody > tr:nth-child(1) > th:nth-child(${m})`);
-        t.parentNode.removeChild(t);
+            t.parentNode.removeChild(t);
         for (var i = 2; ; i++) {
             t = document.querySelector(`#dataList > tbody > tr:nth-child(${i}) > td:nth-child(${m})`)
             if (t == null) {
@@ -100,6 +135,77 @@
                 t.parentNode.removeChild(t);
             }
         }
+    }
+
+    function Judge(){
+        var art = 0;
+        var tra = 0;
+        var sci = 0;
+        var soc = 0;
+        var cre = 0;
+        var nor = 0;
+        for (var i = 2; ; i++) {
+            var t = document.querySelector(`#dataList > tbody > tr:nth-child(${i}) > td:nth-child(${10})`) // 课程属性
+            if (t == null)  break;
+            var num = document.querySelector(`#dataList > tbody > tr:nth-child(${i}) > td:nth-child(${3})`).textContent;
+            var number = num.substr(3, 2);
+            var course;
+            switch(number){
+                case "11" :
+                    course = "国学修养类";
+                    tra += 2;
+                    break;
+                case "12" :
+                    course = "创新创业类";
+                    cre += 2;
+                    break;
+                case "13" :
+                    course = "艺体审美类";
+                    art += 2;
+                    break;
+                case "14" :
+                    course = "人文学科类";
+                    soc += 2;
+                    break;
+                case "15" :
+                    course = "社会科学类";
+                    soc += 2;
+                    break;
+                case "16" :
+                    course = "自然科学类";
+                    sci += 2;
+                    break;
+                case "17" :
+                    course = "工程技术类";
+                    sci += 2;
+                    break;
+                case "93" :
+                    course = "信息社会类";
+                    sci += 2;
+                    break;
+                case "91" :
+                    course = "稷下创新";
+                    cre += 2;
+                    break;
+                case "92" :
+                    course = "齐鲁创业";
+                    cre += 2;
+                    break;
+                case "18" :
+                    course = "通识教育选修课";
+                    nor += 2;
+                    break;
+            }
+            if(t.textContent == "任选" && !document.querySelector(`#dataList > tbody > tr:nth-child(${i}) > td:nth-child(${4})`).textContent.includes("CET")){
+                t.textContent = t.textContent + " (" + course + ")";
+            }
+        }
+        //$("#swiper_db_content > div > div").append(`<h3>您已修读艺体审美类共${art}学分，要求2学分` + art >= 2 ? "<b>您已达标</b>" : "<b><font color='#FF0000'>您未达标</font></b></h3>");
+        $("#swiper_db_content > div > div").append(`<h3>您已修读艺体审美类共${art}学分，要求2学分<b><font color='#FF0000'>您未达标</font></b></h3>`);
+        $("#swiper_db_content > div > div").append(`<h3>国学修养类共${tra}学分，要求2学分</h3>`)
+        $("#swiper_db_content > div > div").append(`<h3>自然科学、工程技术、信息社会类共${sci}学分，要求4学分</h3>`)
+        $("#swiper_db_content > div > div").append(`<h3>人文学科、社会科学类共${soc}学分，要求2学分</h3>`)
+        $("#swiper_db_content > div > div").append(`<h3>稷下创新、齐鲁创新类共${cre}学分，要求4学分</h3>`)
     }
 
     //删除不必要元素的屎山代码
@@ -136,9 +242,85 @@
 
     //页面加载完成后执行此代码
     $(document).ready(function () {
+        var nowURl = window.location.href;
+        if(nowURl.includes("service.sdu.edu.cn")){
+            AddMenuButton();
+        }
+        if(nowURl.includes("jwxt.wh.sdu.edu.cn")){
+            if(nowURl.includes("xspj_list") || nowURl.includes("jsxsd/kscj/") ){
+                unsafeWindow.JsMod = JsMod;
+            }
+            if(nowURl.includes("xspj_edit")){
 
-        AddMenuButton();
+                unsafeWindow.saveData = (obj, status) => {
+                    var pj06xhs = document.getElementsByName("pj06xh");
 
+                    var flag = true;
+                    for (i = 0; i < pj06xhs.length; i++) {
+                        if(jQuery("input[name='pj0601id_"+ pj06xhs[i].value+"']:checked").length == 0) {
+                            flag = false;
+                            break;
+                        }
+                    }
+                    if (!flag) {
+                        alert("评价的每项指标都必须选择!");
+                        return false;
+                    }
+                    flag = false;
+                    var minZb = 0;//取到最小指标数
+                    for (i = 0; i < pj06xhs.length; i++) {
+                        var pj0601s = document.getElementsByName("pj0601id_"+ pj06xhs[i].value);
+                        minZb = pj0601s.length;
+                        break;
+                    }
+
+                    for(j = 0; j < minZb; j++) {
+                        var _ind = 0;
+                        for (i = 0; i < pj06xhs.length; i++) {
+                            var pj0601s = document.getElementsByName("pj0601id_"+ pj06xhs[i].value);
+                            if (j < pj0601s.length && pj0601s[j].checked) {
+                                _ind++;
+                            }
+                        }
+                    if (_ind == pj06xhs.length) {
+                        flag = true;
+                        break;
+                    }
+                }
+
+                if(flag){
+                    alert("请不要选相同一项！");
+                    return false;
+                }
+
+                if (status == "1") {
+                    document.getElementById("issubmit").value = "1";
+                } else {
+                    document.getElementById("issubmit").value = "0";
+                }
+                obj.disabled = true;
+                document.getElementById("Form1").submit();
+
+            }
+                var courselist = document.querySelector("#table1 > tbody");
+                let len = courselist.children.length;
+                let i = 1;
+                var ss = setInterval(()=>{
+                    var ele = document.querySelector(`#table1 > tbody > tr:nth-child(${i + 1}) > td:nth-child(2)`);
+                    let ran = Math.floor(Math.random() * 3);
+                    ele.children[ran * 2].click();
+                    i ++;
+                    if(i >= len) {
+                        console.log(666);
+                        clearInterval(ss);
+                        setTimeout(()=>{
+                            //document.querySelector("#tj").click();
+                        }, 2000);
+                    }
+                }, Math.floor(Math.random() * 20) + 20);
+            }
+
+        }
     });
 
 })();
